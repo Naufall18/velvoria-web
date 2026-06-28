@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '../store/authStore';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
@@ -12,10 +13,10 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor — attach token
+// Request interceptor — attach token (single source of truth: auth store)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth_token');
+    const token = useAuthStore.getState().token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -65,14 +66,14 @@ api.interceptors.response.use(
       try {
         const { data } = await api.post('/refresh-token');
         const newToken = data.data.token;
-        localStorage.setItem('auth_token', newToken);
+        useAuthStore.getState().setToken(newToken);
         api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
         processQueue(null, newToken);
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem('auth_token');
+        useAuthStore.getState().logout();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {

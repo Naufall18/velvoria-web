@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { User, ShieldCheck, ShoppingBag, Award, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../lib/api';
+import { useAuthStore } from '../store/authStore';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -26,8 +27,7 @@ export default function Dashboard() {
      } catch {
        console.warn('API logout failed, performing local logout.');
      }
-    localStorage.removeItem('auth_token');
-    alert('Logged out successfully.');
+    useAuthStore.getState().logout();
     navigate('/');
   };
 

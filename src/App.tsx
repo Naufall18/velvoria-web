@@ -7,6 +7,8 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -41,10 +43,10 @@ function App() {
               <Link to="/cart" className="relative p-2.5 text-[#1A1F3A] hover:text-[#E8B4A0] transition-colors">
                 <ShoppingBag className="w-6 h-6" />
               </Link>
-              <Link to="/dashboard" className="p-2.5 text-[#1A1F3A] hover:text-[#E8B4A0] transition-colors">
+              <Link to="/login" className="p-2.5 text-[#1A1F3A] hover:text-[#E8B4A0] transition-colors">
                 <User className="w-6 h-6" />
               </Link>
-              <Link to="/dashboard" className="px-6 py-2.5 text-sm font-medium bg-[#1A1F3A] text-white rounded-full hover:bg-[#2D5F5D] transition-all shadow-lg shadow-blue-900/10">Get Started</Link>
+              <Link to="/login" className="px-6 py-2.5 text-sm font-medium bg-[#1A1F3A] text-white rounded-full hover:bg-[#2D5F5D] transition-all shadow-lg shadow-blue-900/10">Get Started</Link>
             </div>
 
             <div className="md:hidden">
@@ -74,6 +76,8 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
 
       {/* Footer */}
