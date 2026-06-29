@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Loader2, ShoppingBag } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { User, Mail, Lock, ShoppingBag, BadgeCheck, Gift, Crown } from 'lucide-react';
 import { authApi } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -20,7 +23,7 @@ export default function Register() {
     setError(null);
 
     if (password !== passwordConfirmation) {
-      setError('Passwords do not match.');
+      setError('Konfirmasi kata sandi tidak cocok.');
       return;
     }
 
@@ -37,106 +40,96 @@ export default function Register() {
     } catch (err) {
       const res = (err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response?.data;
       const firstError = res?.errors ? Object.values(res.errors)[0]?.[0] : undefined;
-      setError(firstError ?? res?.message ?? 'Registration failed. Please try again.');
+      setError(firstError ?? res?.message ?? 'Pendaftaran gagal. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen pt-28 pb-20 bg-[#FAF8F5] flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-[2rem] border border-gray-100 shadow-xl p-8 sm:p-10">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-[#1A1F3A] rounded-xl flex items-center justify-center mb-4">
-            <ShoppingBag className="text-[#E8B4A0] w-6 h-6" />
+    <div className="min-h-screen bg-cream px-4 pt-24 pb-16">
+      <div className="mx-auto grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-line bg-surface shadow-xl lg:grid-cols-2">
+        {/* Panel brand (kiri) */}
+        <div className="vv-hero relative hidden flex-col justify-between p-10 text-white lg:flex">
+          <div className="relative z-10 flex items-center gap-2.5">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 backdrop-blur">
+              <ShoppingBag className="h-5 w-5 text-rose" />
+            </span>
+            <span className="font-serif text-2xl font-bold">VELVORIA</span>
           </div>
-          <h1 className="text-3xl font-serif font-bold text-[#1A1F3A]">Join Velvoria</h1>
-          <p className="text-sm text-gray-400 mt-1">Create your account to start shopping</p>
+
+          <div className="relative z-10">
+            <h2 className="font-serif text-4xl font-bold leading-tight">
+              Bergabung dengan<br />dunia kemewahan.
+            </h2>
+            <p className="mt-4 max-w-sm text-white/70">
+              Buat akun untuk menikmati pengalaman belanja barang mewah & lifestyle terbaik.
+            </p>
+            <ul className="mt-8 space-y-3 text-sm text-white/80">
+              <li className="flex items-center gap-3"><Crown className="h-5 w-5 text-rose" /> Status member & poin loyalitas</li>
+              <li className="flex items-center gap-3"><Gift className="h-5 w-5 text-rose" /> Penawaran & hadiah eksklusif</li>
+              <li className="flex items-center gap-3"><BadgeCheck className="h-5 w-5 text-rose" /> Checkout cepat & aman</li>
+            </ul>
+          </div>
+
+          <span className="relative z-10 text-xs text-white/50">© 2026 Velvoria Marketplace</span>
         </div>
 
-        {error && (
-          <div className="mb-6 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-600">
-            {error}
+        {/* Form (kanan) */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="p-8 sm:p-12"
+        >
+          <div className="mb-8">
+            <h1 className="font-serif text-3xl font-bold text-ink">Buat Akun</h1>
+            <p className="mt-1 text-sm text-muted">Sudah punya akun?{' '}
+              <Link to="/login" className="font-semibold text-rose-600 hover:text-rose">Masuk di sini</Link>
+            </p>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Full Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Jane Doe"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A1F3A]/20 focus:border-[#1A1F3A]"
-              />
+          {error && (
+            <div className="mb-6 rounded-xl border border-danger-soft bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
+              {error}
             </div>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A1F3A]/20 focus:border-[#1A1F3A]"
-              />
-            </div>
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <Input
+              label="Nama Lengkap" name="name" type="text" required
+              icon={<User className="h-4 w-4" />}
+              placeholder="Nama Anda"
+              value={name} onChange={(e) => setName(e.target.value)}
+            />
+            <Input
+              label="Email" name="email" type="email" required
+              icon={<Mail className="h-4 w-4" />}
+              placeholder="anda@email.com"
+              value={email} onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              label="Kata Sandi" name="password" type="password" required
+              icon={<Lock className="h-4 w-4" />}
+              placeholder="Minimal 8 karakter"
+              value={password} onChange={(e) => setPassword(e.target.value)}
+            />
+            <Input
+              label="Konfirmasi Kata Sandi" name="password_confirmation" type="password" required
+              icon={<Lock className="h-4 w-4" />}
+              placeholder="Ulangi kata sandi"
+              value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)}
+            />
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A1F3A]/20 focus:border-[#1A1F3A]"
-              />
-            </div>
-          </div>
+            <Button type="submit" size="lg" isLoading={loading} className="w-full">
+              {loading ? 'Membuat akun…' : 'Daftar'}
+            </Button>
+          </form>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Confirm Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-              <input
-                type="password"
-                required
-                value={passwordConfirmation}
-                onChange={(e) => setPasswordConfirmation(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A1F3A]/20 focus:border-[#1A1F3A]"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-full bg-[#1A1F3A] text-white text-sm font-medium hover:bg-[#2D5F5D] transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 disabled:opacity-60"
-          >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {loading ? 'Creating account…' : 'Create Account'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-400 mt-8">
-          Already have an account?{' '}
-          <Link to="/login" className="font-bold text-[#1A1F3A] hover:text-[#E8B4A0] transition-colors">
-            Sign in
-          </Link>
-        </p>
+          <p className="mt-6 text-center text-xs leading-relaxed text-muted-soft">
+            Dengan mendaftar, Anda menyetujui Syarat & Ketentuan serta Kebijakan Privasi Velvoria.
+          </p>
+        </motion.div>
       </div>
     </div>
   );

@@ -1,320 +1,179 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Truck, CreditCard, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Truck, Wallet, CheckCircle2, ChevronRight, ShieldCheck } from 'lucide-react';
+import { cartApi, ordersApi } from '../lib/api';
+import type { CartItem } from '../types';
+import { Container, Button, Input, Skeleton } from '../components/ui';
+import { formatIDR, resolveImage } from '../lib/format';
+import { cn } from '../lib/cn';
+
+const FREE_SHIPPING_MIN = 2_000_000;
+const SHIPPING_FEE = 35_000;
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [placing, setPlacing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Form states
-  const [shippingForm, setShippingForm] = useState({
-    name: '',
-    email: '',
-    address: '',
-    city: '',
-    zip: '',
-    phone: '',
-    deliveryMethod: 'standard'
+  const [form, setForm] = useState({
+    shipping_name: '', shipping_email: '', shipping_phone: '',
+    shipping_address: '', shipping_city: '', shipping_postal_code: '', notes: '',
   });
 
-  const [paymentForm, setPaymentForm] = useState({
-    cardName: '',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvc: '',
-    paymentMethod: 'card'
-  });
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const res = await cartApi.list();
+        const list = res.data?.data?.items ?? res.data?.data ?? [];
+        if (active) setItems(Array.isArray(list) ? list : []);
+      } catch {
+        const local = localStorage.getItem('mock_cart');
+        if (local && active) { try { setItems(JSON.parse(local)); } catch { /* ignore */ } }
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, []);
 
-  const handleShippingSubmit = (e: React.FormEvent) => {
+  const subtotal = items.reduce((acc, it) => acc + Number(it.product?.price ?? 0) * it.quantity, 0);
+  const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_MIN ? 0 : SHIPPING_FEE;
+  const total = subtotal + shipping;
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value });
+
+  const submitShipping = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shippingForm.name || !shippingForm.email || !shippingForm.address) {
-      alert('Please fill out all required shipping fields.');
+    if (!form.shipping_name || !form.shipping_phone || !form.shipping_address || !form.shipping_city) {
+      setError('Mohon lengkapi data pengiriman wajib.');
       return;
     }
+    setError(null);
     setStep(2);
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (paymentForm.paymentMethod === 'card' && (!paymentForm.cardNumber || !paymentForm.cardExpiry)) {
-      alert('Please enter valid credit card details.');
-      return;
+  const placeOrder = async () => {
+    setPlacing(true);
+    setError(null);
+    try {
+      await ordersApi.create(form);
+      localStorage.removeItem('mock_cart');
+      navigate('/dashboard');
+    } catch (err) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(msg ?? 'Gagal membuat pesanan. Pastikan Anda sudah masuk dan keranjang tidak kosong.');
+    } finally {
+      setPlacing(false);
     }
-    setStep(3);
-  };
-
-  const handlePlaceOrder = () => {
-    // Clear local cart Mock
-    localStorage.removeItem('mock_cart');
-    alert('Thank you! Your luxury order has been placed.');
-    navigate('/');
   };
 
   return (
-    <div className="pt-28 pb-20 bg-[#FAF8F5] min-h-screen">
-      <div className="max-w-4xl mx-auto px-4">
-        
-        {/* Stepper Progress Bar */}
-        <div className="flex items-center justify-center gap-4 mb-12 text-sm font-sans font-medium text-gray-400">
-          <button 
-            onClick={() => step > 1 && setStep(1)}
-            className={`flex items-center gap-2 ${step >= 1 ? 'text-[#1A1F3A] font-bold' : ''}`}
-          >
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 1 ? 'bg-[#1A1F3A] text-white' : 'bg-gray-200'}`}>1</span>
-            Shipping
-          </button>
-          <ChevronRight className="w-4 h-4 text-gray-300" />
-          <button 
-            onClick={() => step > 2 && setStep(2)}
-            className={`flex items-center gap-2 ${step >= 2 ? 'text-[#1A1F3A] font-bold' : ''}`}
-            disabled={step < 2}
-          >
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-[#1A1F3A] text-white' : 'bg-gray-200'}`}>2</span>
-            Payment
-          </button>
-          <ChevronRight className="w-4 h-4 text-gray-300" />
-          <div className={`flex items-center gap-2 ${step === 3 ? 'text-[#1A1F3A] font-bold' : ''}`}>
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step === 3 ? 'bg-[#1A1F3A] text-white' : 'bg-gray-200'}`}>3</span>
-            Confirmation
+    <div className="min-h-screen bg-cream pt-28 pb-20">
+      <Container className="max-w-6xl">
+        <h1 className="mb-8 text-center font-serif text-4xl font-bold text-ink">Checkout</h1>
+
+        {/* Stepper */}
+        <div className="mb-10 flex items-center justify-center gap-3 text-sm font-medium text-muted">
+          {[[1, 'Pengiriman'], [2, 'Pembayaran']].map(([n, label], i) => (
+            <div key={n as number} className="flex items-center gap-3">
+              <button onClick={() => (n as number) < step && setStep(n as 1 | 2)} className={cn('flex items-center gap-2', step >= (n as number) && 'font-bold text-ink')}>
+                <span className={cn('grid h-6 w-6 place-items-center rounded-full text-xs', step >= (n as number) ? 'bg-primary text-white' : 'bg-surface-alt text-muted')}>{n}</span>
+                {label}
+              </button>
+              {i === 0 && <ChevronRight className="h-4 w-4 text-muted-soft" />}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Form */}
+          <div className="lg:col-span-2">
+            {error && <div className="mb-6 rounded-xl bg-danger-soft px-4 py-3 text-sm font-medium text-danger">{error}</div>}
+
+            {step === 1 && (
+              <form onSubmit={submitShipping} className="vv-card space-y-5 p-7">
+                <h2 className="flex items-center gap-3 font-serif text-2xl font-bold text-ink"><Truck className="text-rose" /> Alamat Pengiriman</h2>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Input label="Nama Penerima *" value={form.shipping_name} onChange={set('shipping_name')} required />
+                  <Input label="Email" type="email" value={form.shipping_email} onChange={set('shipping_email')} />
+                </div>
+                <Input label="Nomor Telepon *" value={form.shipping_phone} onChange={set('shipping_phone')} required />
+                <Input label="Alamat Lengkap *" value={form.shipping_address} onChange={set('shipping_address')} required />
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Input label="Kota *" value={form.shipping_city} onChange={set('shipping_city')} required />
+                  <Input label="Kode Pos" value={form.shipping_postal_code} onChange={set('shipping_postal_code')} />
+                </div>
+                <Input label="Catatan (opsional)" value={form.notes} onChange={set('notes')} />
+                <Button type="submit" size="lg" className="w-full">Lanjut ke Pembayaran</Button>
+              </form>
+            )}
+
+            {step === 2 && (
+              <div className="vv-card space-y-6 p-7">
+                <h2 className="flex items-center gap-3 font-serif text-2xl font-bold text-ink"><Wallet className="text-rose" /> Metode Pembayaran</h2>
+                <div className="flex items-center justify-between rounded-2xl border-2 border-primary bg-surface-alt p-5">
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-10 w-10 place-items-center rounded-full bg-primary text-white"><Wallet className="h-5 w-5" /></span>
+                    <div>
+                      <div className="font-bold text-ink">Bayar di Tempat (COD)</div>
+                      <div className="text-xs text-muted">Bayar tunai saat pesanan tiba</div>
+                    </div>
+                  </div>
+                  <CheckCircle2 className="h-5 w-5 text-success" />
+                </div>
+                <p className="text-xs text-muted">Metode pembayaran lain (kartu/transfer) akan tersedia segera.</p>
+
+                <div className="rounded-2xl bg-surface-alt p-5 text-sm">
+                  <h4 className="mb-2 font-bold text-ink">Kirim ke</h4>
+                  <p className="font-medium text-ink">{form.shipping_name} · {form.shipping_phone}</p>
+                  <p className="text-muted">{form.shipping_address}, {form.shipping_city} {form.shipping_postal_code}</p>
+                </div>
+
+                <Button onClick={placeOrder} isLoading={placing} size="lg" className="w-full">
+                  <ShieldCheck className="h-5 w-5" /> Buat Pesanan
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Ringkasan */}
+          <div className="vv-card vv-card-gold h-fit p-7 lg:sticky lg:top-28">
+            <h3 className="mb-5 font-serif text-xl font-bold text-ink">Ringkasan</h3>
+            {loading ? (
+              <div className="space-y-3">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>
+            ) : (
+              <div className="mb-5 space-y-4 border-b border-line pb-5">
+                {items.map((it) => {
+                  const img = it.product?.primaryImage?.image_url ?? it.product?.images?.[0]?.image_url;
+                  return (
+                    <div key={it.id} className="flex items-center gap-3">
+                      <div className="h-14 w-12 flex-shrink-0 overflow-hidden rounded-xl bg-surface-alt">
+                        {img && <img src={resolveImage(img)} className="h-full w-full object-cover" alt="" />}
+                      </div>
+                      <div className="flex-grow text-sm">
+                        <div className="line-clamp-1 font-medium text-ink">{it.product?.name}</div>
+                        <div className="text-xs text-muted">{it.quantity} × {formatIDR(it.product?.price)}</div>
+                      </div>
+                      <span className="text-sm font-bold text-ink">{formatIDR(Number(it.product?.price ?? 0) * it.quantity)}</span>
+                    </div>
+                  );
+                })}
+                {items.length === 0 && <p className="text-sm text-muted">Keranjang kosong.</p>}
+              </div>
+            )}
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between text-muted"><span>Subtotal</span><span className="font-bold text-ink">{formatIDR(subtotal)}</span></div>
+              <div className="flex justify-between text-muted"><span>Ongkos kirim</span><span className="font-bold text-ink">{shipping === 0 ? 'Gratis' : formatIDR(shipping)}</span></div>
+              <div className="flex justify-between border-t border-line pt-3 text-base"><span className="font-semibold text-ink">Total</span><span className="text-xl font-bold text-ink">{formatIDR(total)}</span></div>
+            </div>
           </div>
         </div>
-
-        {/* Step Content */}
-        <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] border border-gray-100 shadow-xl">
-          
-          {/* STEP 1: SHIPPING FORM */}
-          {step === 1 && (
-            <form onSubmit={handleShippingSubmit}>
-              <h2 className="text-2xl font-serif font-bold text-[#1A1F3A] mb-8 flex items-center gap-3">
-                <Truck className="text-[#E8B4A0]" /> Shipping Address
-              </h2>
-              
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Recipient Name *</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={shippingForm.name} 
-                    onChange={e => setShippingForm({ ...shippingForm, name: e.target.value })}
-                    className="w-full border border-gray-100 rounded-xl px-4 py-3 bg-[#FAF8F5] focus:outline-none focus:border-[#E8B4A0] text-sm" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Email Address *</label>
-                  <input 
-                    type="email" 
-                    required
-                    value={shippingForm.email} 
-                    onChange={e => setShippingForm({ ...shippingForm, email: e.target.value })}
-                    className="w-full border border-gray-100 rounded-xl px-4 py-3 bg-[#FAF8F5] focus:outline-none focus:border-[#E8B4A0] text-sm" 
-                  />
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Street Address *</label>
-                <input 
-                  type="text" 
-                  required
-                  value={shippingForm.address} 
-                  onChange={e => setShippingForm({ ...shippingForm, address: e.target.value })}
-                  className="w-full border border-gray-100 rounded-xl px-4 py-3 bg-[#FAF8F5] focus:outline-none focus:border-[#E8B4A0] text-sm" 
-                />
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">City *</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={shippingForm.city} 
-                    onChange={e => setShippingForm({ ...shippingForm, city: e.target.value })}
-                    className="w-full border border-gray-100 rounded-xl px-4 py-3 bg-[#FAF8F5] focus:outline-none focus:border-[#E8B4A0] text-sm" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">ZIP Code *</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={shippingForm.zip} 
-                    onChange={e => setShippingForm({ ...shippingForm, zip: e.target.value })}
-                    className="w-full border border-gray-100 rounded-xl px-4 py-3 bg-[#FAF8F5] focus:outline-none focus:border-[#E8B4A0] text-sm" 
-                  />
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <h4 className="text-xs font-bold text-[#1A1F3A] uppercase tracking-wider mb-4">Delivery Speed</h4>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <label className={`border p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${shippingForm.deliveryMethod === 'standard' ? 'border-[#1A1F3A] bg-gray-50' : 'border-gray-200'}`}>
-                    <div>
-                      <div className="font-bold text-sm text-[#1A1F3A]">Standard Delivery</div>
-                      <div className="text-xs text-gray-400">3-5 Business Days</div>
-                    </div>
-                    <input 
-                      type="radio" 
-                      name="delivery" 
-                      value="standard"
-                      checked={shippingForm.deliveryMethod === 'standard'}
-                      onChange={() => setShippingForm({ ...shippingForm, deliveryMethod: 'standard' })}
-                      className="accent-[#1A1F3A]"
-                    />
-                  </label>
-                  <label className={`border p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${shippingForm.deliveryMethod === 'express' ? 'border-[#1A1F3A] bg-gray-50' : 'border-gray-200'}`}>
-                    <div>
-                      <div className="font-bold text-sm text-[#1A1F3A]">Express Premium</div>
-                      <div className="text-xs text-gray-400">1-2 Business Days</div>
-                    </div>
-                    <input 
-                      type="radio" 
-                      name="delivery" 
-                      value="express"
-                      checked={shippingForm.deliveryMethod === 'express'}
-                      onChange={() => setShippingForm({ ...shippingForm, deliveryMethod: 'express' })}
-                      className="accent-[#1A1F3A]"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <button 
-                type="submit" 
-                className="w-full py-4 bg-[#1A1F3A] hover:bg-[#2D5F5D] text-white font-bold rounded-full shadow-lg transition-colors text-center"
-              >
-                Continue to Payment
-              </button>
-            </form>
-          )}
-
-          {/* STEP 2: PAYMENT METHOD */}
-          {step === 2 && (
-            <form onSubmit={handlePaymentSubmit}>
-              <h2 className="text-2xl font-serif font-bold text-[#1A1F3A] mb-8 flex items-center gap-3">
-                <CreditCard className="text-[#E8B4A0]" /> Secure Payment
-              </h2>
-
-              <div className="mb-8">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <label className={`border p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${paymentForm.paymentMethod === 'card' ? 'border-[#1A1F3A] bg-gray-50' : 'border-gray-200'}`}>
-                    <span className="font-bold text-sm text-[#1A1F3A]">Credit/Debit Card</span>
-                    <input 
-                      type="radio" 
-                      name="payMethod" 
-                      value="card"
-                      checked={paymentForm.paymentMethod === 'card'}
-                      onChange={() => setPaymentForm({ ...paymentForm, paymentMethod: 'card' })}
-                      className="accent-[#1A1F3A]"
-                    />
-                  </label>
-                  <label className={`border p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${paymentForm.paymentMethod === 'transfer' ? 'border-[#1A1F3A] bg-gray-50' : 'border-gray-200'}`}>
-                    <span className="font-bold text-sm text-[#1A1F3A]">Bank Escrow Transfer</span>
-                    <input 
-                      type="radio" 
-                      name="payMethod" 
-                      value="transfer"
-                      checked={paymentForm.paymentMethod === 'transfer'}
-                      onChange={() => setPaymentForm({ ...paymentForm, paymentMethod: 'transfer' })}
-                      className="accent-[#1A1F3A]"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              {paymentForm.paymentMethod === 'card' && (
-                <div className="space-y-6 mb-8">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Cardholder Name</label>
-                    <input 
-                      type="text" 
-                      value={paymentForm.cardName} 
-                      onChange={e => setPaymentForm({ ...paymentForm, cardName: e.target.value })}
-                      className="w-full border border-gray-100 rounded-xl px-4 py-3 bg-[#FAF8F5] focus:outline-none focus:border-[#E8B4A0] text-sm" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Card Number</label>
-                    <input 
-                      type="text" 
-                      placeholder="•••• •••• •••• ••••"
-                      value={paymentForm.cardNumber} 
-                      onChange={e => setPaymentForm({ ...paymentForm, cardNumber: e.target.value })}
-                      className="w-full border border-gray-100 rounded-xl px-4 py-3 bg-[#FAF8F5] focus:outline-none focus:border-[#E8B4A0] text-sm" 
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Expiration Date</label>
-                      <input 
-                        type="text" 
-                        placeholder="MM/YY"
-                        value={paymentForm.cardExpiry} 
-                        onChange={e => setPaymentForm({ ...paymentForm, cardExpiry: e.target.value })}
-                        className="w-full border border-gray-100 rounded-xl px-4 py-3 bg-[#FAF8F5] focus:outline-none focus:border-[#E8B4A0] text-sm" 
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase mb-2">CVC / CVV</label>
-                      <input 
-                        type="text" 
-                        placeholder="•••"
-                        value={paymentForm.cardCvc} 
-                        onChange={e => setPaymentForm({ ...paymentForm, cardCvc: e.target.value })}
-                        className="w-full border border-gray-100 rounded-xl px-4 py-3 bg-[#FAF8F5] focus:outline-none focus:border-[#E8B4A0] text-sm" 
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {paymentForm.paymentMethod === 'transfer' && (
-                <div className="bg-[#FAF8F5] border border-gray-100 p-6 rounded-2xl mb-8 text-sm text-gray-600">
-                  Instructions: Please transfer to account <strong>123-456-7890 (Velvoria Escrow Bank)</strong> and upload confirmation invoice to process orders.
-                </div>
-              )}
-
-              <button 
-                type="submit" 
-                className="w-full py-4 bg-[#1A1F3A] hover:bg-[#2D5F5D] text-white font-bold rounded-full shadow-lg transition-colors text-center"
-              >
-                Review Order Details
-              </button>
-            </form>
-          )}
-
-          {/* STEP 3: REVIEW & PLACE ORDER */}
-          {step === 3 && (
-            <div>
-              <h2 className="text-2xl font-serif font-bold text-[#1A1F3A] mb-8 flex items-center gap-3">
-                <CheckCircle2 className="text-green-600" /> Review Order
-              </h2>
-
-              <div className="space-y-6 mb-10 text-sm border-b border-gray-100 pb-6">
-                <div>
-                  <h4 className="font-bold text-gray-500 mb-1">Shipping Recipient</h4>
-                  <p className="text-[#1A1F3A] font-medium">{shippingForm.name} ({shippingForm.email})</p>
-                  <p className="text-gray-500">{shippingForm.address}, {shippingForm.city}</p>
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-500 mb-1">Payment Method</h4>
-                  <p className="text-[#1A1F3A] font-medium uppercase">{paymentForm.paymentMethod} Payment</p>
-                </div>
-              </div>
-
-              <button 
-                onClick={handlePlaceOrder}
-                className="w-full py-4 bg-[#1A1F3A] hover:bg-green-600 text-white font-bold rounded-full shadow-lg transition-all text-center flex items-center justify-center gap-2"
-              >
-                <ShieldCheck className="w-5 h-5" />
-                Place Order
-              </button>
-            </div>
-          )}
-
-        </div>
-      </div>
+      </Container>
     </div>
   );
 }

@@ -1,22 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* ============================================================
+   VELVORIA — Design Tokens  (palet "Navy • Rose Gold • Champagne")
+   Satu sumber kebenaran untuk web. Komponen memakai utility brand
+   (bg-primary, text-ink, border-line, dst) yang dipetakan di sini —
+   jadi penyesuaian brand tanpa menyentuh tiap file.
+   ============================================================ */
 @theme {
-  --color-primary: #1A1F3A;
-  --color-secondary: #E8B4A0;
-  --color-accent: #2D5F5D;
-  --color-cream: #FAF8F5;
-  --font-serif: "Playfair Display", serif;
-  --font-sans: "Inter", sans-serif;
+  /* ── Brand inti ── */
+  --color-primary:      #1A1F3A;  /* deep navy — tombol, judul, ink */
+  --color-primary-700:  #2A3157;  /* navy hover */
+  --color-primary-900:  #11152a;  /* navy pekat (gradient hero) */
+  --color-ink:          #1A1F3A;  /* teks utama */
+
+  --color-rose:         #E8B4A0;  /* rose gold — aksen mewah */
+  --color-rose-soft:    #F6E6DE;  /* rose tint lembut */
+  --color-rose-600:     #D69A82;  /* rose pekat (hover aksen) */
+
+  --color-emerald:      #2D5F5D;  /* emerald — aksen sekunder */
+  --color-emerald-soft: #DCE8E6;
+
+  --color-gold:         #C5A572;  /* champagne gold — hairline signature */
+  --color-gold-soft:    #EFE6D5;
+
+  /* ── Permukaan & netral hangat ── */
+  --color-cream:        #FAF8F5;  /* background utama */
+  --color-surface:      #FFFFFF;  /* kartu */
+  --color-surface-alt:  #F3EFEA;  /* permukaan alternatif */
+  --color-line:         #ECE6DF;  /* border halus */
+  --color-line-strong:  #DED5C9;
+
+  --color-muted:        #8A8175;  /* teks sekunder */
+  --color-muted-soft:   #B4AB9D;
+
+  /* ── Semantik ── */
+  --color-success:      #5E8C7E;
+  --color-success-soft: #E3EEEA;
+  --color-danger:       #8B2635;
+  --color-danger-soft:  #F4E2E4;
+  --color-warning:      #C8922A;  /* gold-amber untuk rating */
+  --color-warning-soft: #F7ECD4;
+  --color-info:         #3B6CA8;
+  --color-info-soft:    #E3ECF6;
+
+  /* ── Tipografi ── */
+  --font-sans:    "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif:   "Playfair Display", ui-serif, Georgia, serif;
+
+  /* ── Radius ── */
+  --radius-card: 20px;
 }
+
+/* ============================================================
+   Base
+   ============================================================ */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #FAF8F5;
-
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -27,5 +67,118 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  color: #2C2C2C;
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
+/* Fokus keyboard yang jelas (aksesibilitas) */
+:focus-visible {
+  outline: 2px solid var(--color-rose);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+::selection {
+  background: var(--color-rose-soft);
+  color: var(--color-ink);
+}
+
+/* Scrollbar halus */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--color-line-strong); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-muted-soft); }
+
+/* ============================================================
+   Signature Velvoria — "kartu mewah hairline emas"
+   Radius lembut + bayangan halus + opsi garis champagne-gold tipis
+   di atas kartu → siluet premium yang konsisten.
+   ============================================================ */
+.vv-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  box-shadow: 0 1px 2px rgba(26, 31, 58, 0.04);
+  transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+}
+
+/* Varian dengan aksen hairline emas di tepi atas (detail signature) */
+.vv-card-gold {
+  position: relative;
+}
+.vv-card-gold::before {
+  content: "";
+  position: absolute;
+  left: 24px; right: 24px; top: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  opacity: 0.8;
+}
+
+/* Hover halus untuk kartu interaktif (lift kecil) */
+.vv-hover {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+/* Gradien hero navy mewah */
+.vv-hero {
+  background:
+    radial-gradient(120% 120% at 85% 0%, rgba(232,180,160,0.18) 0%, transparent 45%),
+    radial-gradient(100% 120% at 0% 100%, rgba(45,95,93,0.22) 0%, transparent 50%),
+    linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-900) 100%);
+}
+
+/* ============================================================
+   Skeleton — shimmer sweep premium (statis saat reduced-motion)
+   ============================================================ */
+.vv-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-surface-alt);
+  border-radius: 12px;
+}
+
+/* ============================================================
+   Animasi halus — hanya bila user tidak meminta reduced motion
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes vv-fade-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .vv-fade-in { animation: vv-fade-up 0.5s ease-out both; }
+
+  @keyframes vv-shimmer { 100% { transform: translateX(100%); } }
+  .vv-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+    animation: vv-shimmer 1.5s infinite;
+  }
+
+  .vv-card:hover {
+    box-shadow: 0 18px 40px -22px rgba(26, 31, 58, 0.35);
+    border-color: var(--color-line-strong);
+  }
+  .vv-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 22px 44px -20px rgba(26, 31, 58, 0.30);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
