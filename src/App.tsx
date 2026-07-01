@@ -9,7 +9,7 @@ import Checkout from './pages/Checkout';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import { Container } from './components/ui';
+import { Container, VelvoriaLogo } from './components/ui';
 import { cn } from './lib/cn';
 
 const NAV = [
@@ -38,8 +38,8 @@ function Navbar() {
       <Container>
         <div className="flex h-20 items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary">
-              <ShoppingBag className="h-5 w-5 text-rose" />
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary p-2">
+              <VelvoriaLogo className="h-full w-full" />
             </span>
             <span className="font-serif text-2xl font-bold tracking-tight text-ink">VELVORIA</span>
           </Link>
@@ -103,8 +103,8 @@ function Footer() {
         <div className="grid gap-12 md:grid-cols-4">
           <div className="md:col-span-2">
             <div className="mb-5 flex items-center gap-2.5">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary">
-                <ShoppingBag className="h-5 w-5 text-rose" />
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary p-2">
+                <VelvoriaLogo className="h-full w-full" />
               </span>
               <span className="font-serif text-2xl font-bold text-ink">VELVORIA</span>
             </div>

@@ -5,3 +5,4 @@ export { Badge } from './Badge';
 export { Skeleton } from './Skeleton';
 export { Container } from './Container';
 export { ProductCard } from './ProductCard';
+export { VelvoriaLogo } from './VelvoriaLogo';

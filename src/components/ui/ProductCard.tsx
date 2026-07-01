@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, Star } from 'lucide-react';
+import { Heart, Star, ShieldCheck } from 'lucide-react';
 import type { Product } from '../../types';
 import { formatIDR, resolveImage } from '../../lib/format';
 import { cn } from '../../lib/cn';
@@ -57,15 +57,22 @@ export function ProductCard({ product, onWish, wished, className }: ProductCardP
 
         {/* Info */}
         <div className="p-4">
-          {product.brand?.name && (
-            <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-emerald">{product.brand.name}</p>
-          )}
+          <div className="mb-1 flex items-center gap-1.5">
+            {product.brand?.name && (
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald">{product.brand.name}</span>
+            )}
+            {/* Signature: seal keaslian */}
+            <span className="ml-auto inline-flex items-center gap-1 font-mono text-[9px] font-medium uppercase tracking-wider text-emerald/80">
+              <ShieldCheck className="h-3 w-3" /> Asli
+            </span>
+          </div>
           <h3 className="truncate font-serif text-base font-semibold text-ink">{product.name}</h3>
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mt-2 flex items-center justify-between border-t border-gold/30 pt-2.5">
             <div className="flex items-baseline gap-2">
-              <span className="text-sm font-bold text-ink">{formatIDR(product.price)}</span>
+              {/* Data role: harga mono */}
+              <span className="font-mono text-sm font-semibold text-ink">{formatIDR(product.price)}</span>
               {discount > 0 && (
-                <span className="text-xs text-muted-soft line-through">{formatIDR(product.compare_price!)}</span>
+                <span className="font-mono text-[11px] text-muted-soft line-through">{formatIDR(product.compare_price!)}</span>
               )}
             </div>
             {product.rating ? (
