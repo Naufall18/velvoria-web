@@ -13,9 +13,9 @@ import { Container } from './components/ui';
 import { cn } from './lib/cn';
 
 const NAV = [
-  { label: 'Collections', to: '/products' },
-  { label: 'New Arrivals', to: '/products?sort=new' },
-  { label: 'Brands', to: '/products' },
+  { label: 'Koleksi', to: '/products' },
+  { label: 'Baru', to: '/products?sort=new' },
+  { label: 'Brand', to: '/products' },
   { label: 'Live Shopping', to: '/products' },
 ];
 
