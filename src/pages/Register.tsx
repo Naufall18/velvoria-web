@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, ShoppingBag, BadgeCheck, Gift, Crown } from 'lucide-react';
+import { User, Mail, Lock, BadgeCheck, Gift, Crown } from 'lucide-react';
 import { authApi } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { VelvoriaLogo } from '../components/ui/VelvoriaLogo';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -52,10 +53,10 @@ export default function Register() {
         {/* Panel brand (kiri) */}
         <div className="vv-hero relative hidden flex-col justify-between p-10 text-white lg:flex">
           <div className="relative z-10 flex items-center gap-2.5">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 backdrop-blur">
-              <ShoppingBag className="h-5 w-5 text-rose" />
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 p-2 backdrop-blur">
+              <VelvoriaLogo className="h-full w-full" />
             </span>
-            <span className="font-serif text-2xl font-bold">VELVORIA</span>
+            <span className="font-serif text-2xl font-bold text-white">VELVORIA</span>
           </div>
 
           <div className="relative z-10">
