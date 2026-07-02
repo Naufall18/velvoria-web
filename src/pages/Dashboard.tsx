@@ -140,9 +140,9 @@ export default function Dashboard() {
                           const st = STATUS[o.status?.toLowerCase()] ?? { label: o.status, tone: 'neutral' as const };
                           return (
                             <tr key={o.id} className="transition hover:bg-surface-alt/50">
-                              <td className="py-4 font-bold text-ink">{o.order_number ?? `VLV-${o.id}`}</td>
-                              <td className="py-4 text-muted">{o.created_at ? new Date(o.created_at).toLocaleDateString('id-ID') : '—'}</td>
-                              <td className="py-4 font-bold text-ink">{formatIDR(o.total)}</td>
+                              <td className="py-4 font-mono font-semibold text-ink">{o.order_number ?? `VLV-${o.id}`}</td>
+                              <td className="py-4 font-mono text-muted">{o.created_at ? new Date(o.created_at).toLocaleDateString('id-ID') : '—'}</td>
+                              <td className="py-4 font-mono font-semibold text-ink">{formatIDR(o.total)}</td>
                               <td className="py-4"><Badge tone={st.tone}>{st.label}</Badge></td>
                             </tr>
                           );
@@ -157,11 +157,11 @@ export default function Dashboard() {
             {activeTab === 'loyalty' && (
               <div>
                 <h2 className="mb-8 border-b border-line pb-4 font-serif text-3xl font-bold text-ink">Klub Loyalitas</h2>
-                <div className="vv-hero mb-8 rounded-3xl p-8 text-white">
-                  <div className="mb-1 text-xs font-medium uppercase tracking-widest text-white/70">Poin Tersedia</div>
-                  <div className="mb-6 font-serif text-5xl font-bold">{points.toLocaleString('id-ID')} poin</div>
-                  <div className="flex items-center justify-between border-t border-white/10 pt-4 text-xs text-white/80">
-                    <span>Level: <strong>Platinum</strong></span><span>1.000 poin = Rp100.000</span>
+                <div className="vv-hero vv-card-gold mb-8 rounded-3xl p-8 text-white">
+                  <div className="mb-1 font-mono text-xs font-medium uppercase tracking-widest text-gold">Poin Tersedia</div>
+                  <div className="mb-6 font-mono text-5xl font-semibold">{points.toLocaleString('id-ID')}<span className="ml-2 font-sans text-xl font-normal text-white/70">poin</span></div>
+                  <div className="flex items-center justify-between border-t border-white/10 pt-4 font-mono text-xs text-white/80">
+                    <span>Level: <strong className="text-gold">Platinum</strong></span><span>1.000 poin = Rp100.000</span>
                   </div>
                 </div>
                 <h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-ink">Keistimewaan Platinum</h4>

@@ -157,9 +157,9 @@ export default function Checkout() {
                       </div>
                       <div className="flex-grow text-sm">
                         <div className="line-clamp-1 font-medium text-ink">{it.product?.name}</div>
-                        <div className="text-xs text-muted">{it.quantity} × {formatIDR(it.product?.price)}</div>
+                        <div className="font-mono text-xs text-muted">{it.quantity} × {formatIDR(it.product?.price)}</div>
                       </div>
-                      <span className="text-sm font-bold text-ink">{formatIDR(Number(it.product?.price ?? 0) * it.quantity)}</span>
+                      <span className="font-mono text-sm font-semibold text-ink">{formatIDR(Number(it.product?.price ?? 0) * it.quantity)}</span>
                     </div>
                   );
                 })}
@@ -167,9 +167,9 @@ export default function Checkout() {
               </div>
             )}
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between text-muted"><span>Subtotal</span><span className="font-bold text-ink">{formatIDR(subtotal)}</span></div>
-              <div className="flex justify-between text-muted"><span>Ongkos kirim</span><span className="font-bold text-ink">{shipping === 0 ? 'Gratis' : formatIDR(shipping)}</span></div>
-              <div className="flex justify-between border-t border-line pt-3 text-base"><span className="font-semibold text-ink">Total</span><span className="text-xl font-bold text-ink">{formatIDR(total)}</span></div>
+              <div className="flex justify-between text-muted"><span>Subtotal</span><span className="font-mono font-semibold text-ink">{formatIDR(subtotal)}</span></div>
+              <div className="flex justify-between text-muted"><span>Ongkos kirim</span><span className="font-mono font-semibold text-ink">{shipping === 0 ? 'Gratis' : formatIDR(shipping)}</span></div>
+              <div className="flex justify-between border-t border-gold/30 pt-3 text-base"><span className="font-semibold text-ink">Total</span><span className="font-mono text-xl font-semibold text-ink">{formatIDR(total)}</span></div>
             </div>
           </div>
         </div>

@@ -101,15 +101,15 @@ export default function Cart() {
                     <div className="flex-grow text-center sm:text-left">
                       {item.product?.brand?.name && <span className="text-xs font-bold uppercase tracking-wider text-emerald">{item.product.brand.name}</span>}
                       <Link to={`/product/${item.product?.slug}`} className="block font-serif text-lg font-semibold text-ink hover:text-rose-600">{item.product?.name}</Link>
-                      <span className="text-sm text-muted">{formatIDR(item.product?.price)}</span>
+                      <span className="font-mono text-sm text-muted">{formatIDR(item.product?.price)}</span>
                     </div>
                     <div className="inline-flex items-center rounded-full border border-line-strong bg-surface-alt px-2">
                       <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="grid h-9 w-9 place-items-center text-muted hover:text-ink"><Minus className="h-3.5 w-3.5" /></button>
-                      <span className="w-9 text-center text-sm font-bold text-ink">{item.quantity}</span>
+                      <span className="w-9 text-center font-mono text-sm font-bold text-ink">{item.quantity}</span>
                       <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="grid h-9 w-9 place-items-center text-muted hover:text-ink"><Plus className="h-3.5 w-3.5" /></button>
                     </div>
                     <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:flex-col sm:items-end">
-                      <span className="text-lg font-bold text-ink">{formatIDR(Number(item.product?.price ?? 0) * item.quantity)}</span>
+                      <span className="font-mono text-lg font-semibold text-ink">{formatIDR(Number(item.product?.price ?? 0) * item.quantity)}</span>
                       <button onClick={() => removeItem(item.id)} className="p-2 text-muted transition-colors hover:text-danger"><Trash2 className="h-4 w-4" /></button>
                     </div>
                   </div>
@@ -117,16 +117,26 @@ export default function Cart() {
               })}
             </div>
 
-            {/* Ringkasan */}
+            {/* Ringkasan — gaya invoice mono */}
             <div className="vv-card vv-card-gold p-7 lg:sticky lg:top-28">
-              <h3 className="mb-6 font-serif text-xl font-bold text-ink">Ringkasan Pesanan</h3>
-              <div className="mb-6 space-y-4 border-b border-line pb-6 text-sm">
-                <div className="flex justify-between text-muted"><span>Subtotal</span><span className="font-bold text-ink">{formatIDR(subtotal)}</span></div>
-                <div className="flex justify-between text-muted"><span>Ongkos kirim</span><span className="font-bold text-ink">{shipping === 0 ? 'Gratis' : formatIDR(shipping)}</span></div>
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="font-serif text-xl font-bold text-ink">Ringkasan Pesanan</h3>
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-soft">
+                  {cartItems.length} item
+                </span>
+              </div>
+              <div className="mb-6 space-y-4 border-b border-gold/30 pb-6 text-sm">
+                <div className="flex justify-between text-muted"><span>Subtotal</span><span className="font-mono font-semibold text-ink">{formatIDR(subtotal)}</span></div>
+                <div className="flex justify-between text-muted"><span>Ongkos kirim</span><span className="font-mono font-semibold text-ink">{shipping === 0 ? 'Gratis' : formatIDR(shipping)}</span></div>
+                {shipping === 0 && subtotal > 0 && (
+                  <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-emerald">
+                    <ShieldCheck className="h-3.5 w-3.5" /> Gratis ongkir aktif
+                  </div>
+                )}
               </div>
               <div className="mb-8 flex items-end justify-between">
                 <span className="font-semibold text-ink">Total</span>
-                <span className="text-2xl font-bold text-ink">{formatIDR(total)}</span>
+                <span className="font-mono text-2xl font-semibold text-ink">{formatIDR(total)}</span>
               </div>
               <Button onClick={() => navigate('/checkout')} size="lg" className="w-full">
                 Lanjut ke Pembayaran <ArrowRight className="h-4 w-4" />
