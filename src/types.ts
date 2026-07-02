@@ -1,5 +1,5 @@
 export interface Brand { id: number; name: string; slug: string; }
-export interface Category { id: number; name: string; slug: string; image_url?: string | null; }
+export interface Category { id: number; name: string; slug: string; image_url?: string | null; image?: string | null; products_count?: number; }
 export interface ProductImage { id: number; image_url: string; alt_text?: string; is_primary?: boolean; }
 export interface ProductVariant { id: number; name: string; value?: string; price?: number; stock?: number; }
 export interface Review { id: number; rating: number; comment?: string; user?: { name: string }; created_at?: string; }
