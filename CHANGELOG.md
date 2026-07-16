@@ -1,0 +1,13 @@
+# Changelog
+
+Catatan perubahan penting velvoria-web.
+
+## Unreleased
+- Ringkasan gaya invoice mono diterapkan di Cart, Checkout, dan Dashboard
+- Seal "ASLI" + harga mono konsisten dengan tampilan mobile
+- CORS dev: mengikuti origin pattern localhost dari backend
+
+## Rencana
+- Polish halaman order history & detail pesanan
+- Audit responsif untuk breakpoint tablet
+- State kosong (empty state) untuk wishlist & pencarian
