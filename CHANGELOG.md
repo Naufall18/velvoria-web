@@ -11,3 +11,4 @@ Catatan perubahan penting velvoria-web.
 - Polish halaman order history & detail pesanan
 - Audit responsif untuk breakpoint tablet
 - State kosong (empty state) untuk wishlist & pencarian
+- Draf polish order history dimulai (2026-07-18)
