@@ -13,3 +13,4 @@ Catatan perubahan penting velvoria-web.
 - State kosong (empty state) untuk wishlist & pencarian
 - Draf polish order history dimulai (2026-07-18)
 - Rencana card list untuk order history mobile (2026-07-19)
+- Card list order history mobile: progres implementasi (2026-07-20)
