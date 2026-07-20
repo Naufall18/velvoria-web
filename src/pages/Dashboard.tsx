@@ -139,7 +139,8 @@ export default function Dashboard() {
                         {orders.map((o) => {
                           const st = STATUS[o.status?.toLowerCase()] ?? { label: o.status, tone: 'neutral' as const };
                           return (
-                            <tr key={o.id} className="transition hover:bg-surface-alt/50">
+                            <tr key={o.id} onClick={() => navigate(`/order/${o.id}`)}
+                              className="cursor-pointer transition hover:bg-surface-alt/50">
                               <td className="py-4 font-mono font-semibold text-ink">{o.order_number ?? `VLV-${o.id}`}</td>
                               <td className="py-4 font-mono text-muted">{o.created_at ? new Date(o.created_at).toLocaleDateString('id-ID') : '—'}</td>
                               <td className="py-4 font-mono font-semibold text-ink">{formatIDR(o.total)}</td>

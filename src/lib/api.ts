@@ -124,6 +124,7 @@ export const cartApi = {
 // ─── Orders API ─────────────────────────────────────────────
 export const ordersApi = {
   list: () => api.get('/orders'),
+  detail: (id: number | string) => api.get(`/orders/${id}`),
   create: (data: {
     shipping_name: string;
     shipping_email: string;
