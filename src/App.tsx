@@ -11,6 +11,8 @@ import Dashboard from './pages/Dashboard';
 import OrderDetail from './pages/OrderDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Wishlist from './pages/Wishlist';
+import NotFound from './pages/NotFound';
 import { Container, VelvoriaLogo } from './components/ui';
 import { cn } from './lib/cn';
 
@@ -171,6 +173,8 @@ function App() {
         <Route path="/order/:id" element={<RequireAuth><OrderDetail /></RequireAuth>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/wishlist" element={<RequireAuth><Wishlist /></RequireAuth>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
     </div>
