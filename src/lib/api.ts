@@ -140,3 +140,12 @@ export const ordersApi = {
 export const paymentApi = {
   checkout: (orderId: number) => api.post('/payments/checkout', { order_id: orderId }),
 };
+
+// ─── Wishlist API ────────────────────────────────────────────
+export const wishlistApi = {
+  list: () => api.get('/wishlist'),
+  add: (productId: number) => api.post('/wishlist', { product_id: productId }),
+  remove: (productId: number) => api.delete(`/wishlist/${productId}`),
+  toggle: (productId: number) => api.post(`/wishlist/${productId}/toggle`),
+  check: (productId: number) => api.get(`/wishlist/${productId}/check`),
+};
