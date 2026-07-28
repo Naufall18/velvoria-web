@@ -149,3 +149,27 @@ export const wishlistApi = {
   toggle: (productId: number) => api.post(`/wishlist/${productId}/toggle`),
   check: (productId: number) => api.get(`/wishlist/${productId}/check`),
 };
+
+// ─── Search API ──────────────────────────────────────────────
+export const searchApi = {
+  search: (params: {
+    q?: string;
+    category?: string;
+    min_price?: number;
+    max_price?: number;
+    sort?: string;
+    per_page?: number;
+    page?: number;
+  }) => api.get('/search', { params }),
+};
+
+// ─── User API ────────────────────────────────────────────────
+export const userApi = {
+  updateProfile: (data: { name?: string; email?: string }) =>
+    api.put('/user/profile', data),
+  updatePassword: (data: {
+    current_password: string;
+    password: string;
+    password_confirmation: string;
+  }) => api.put('/user/password', data),
+};
