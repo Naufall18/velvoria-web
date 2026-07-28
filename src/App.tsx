@@ -1,4 +1,4 @@
-import { ShoppingBag, Menu, X, User, Search, Heart } from 'lucide-react';
+import { ShoppingBag, Menu, X, User, Search as SearchIcon, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
@@ -13,6 +13,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Wishlist from './pages/Wishlist';
 import NotFound from './pages/NotFound';
+import Search from './pages/Search';
+import UserProfile from './pages/UserProfile';
 import { Container, VelvoriaLogo } from './components/ui';
 import { cn } from './lib/cn';
 
@@ -57,8 +59,8 @@ function Navbar() {
           </div>
 
           <div className="hidden items-center gap-1 md:flex">
-            <Link to="/products" aria-label="Cari" className="grid h-11 w-11 place-items-center rounded-full text-ink transition-colors hover:bg-surface-alt">
-              <Search className="h-5 w-5" />
+            <Link to="/search" aria-label="Cari" className="grid h-11 w-11 place-items-center rounded-full text-ink transition-colors hover:bg-surface-alt">
+              <SearchIcon className="h-5 w-5" />
             </Link>
             <Link to="/dashboard" aria-label="Wishlist" className="grid h-11 w-11 place-items-center rounded-full text-ink transition-colors hover:bg-surface-alt">
               <Heart className="h-5 w-5" />
@@ -174,6 +176,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/wishlist" element={<RequireAuth><Wishlist /></RequireAuth>} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/profile" element={<RequireAuth><UserProfile /></RequireAuth>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
