@@ -1,23 +1,48 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, Star, ShieldCheck } from 'lucide-react';
 import type { Product } from '../../types';
 import { formatIDR, resolveImage } from '../../lib/format';
 import { cn } from '../../lib/cn';
+import { wishlistApi } from '../../lib/api';
 
 interface ProductCardProps {
   product: Product;
+  /** Override manual — jika parent ingin kontrol state wished */
   onWish?: (p: Product) => void;
   wished?: boolean;
   className?: string;
 }
 
-export function ProductCard({ product, onWish, wished, className }: ProductCardProps) {
+export function ProductCard({ product, onWish, wished: wishedProp, className }: ProductCardProps) {
   const img = product.primaryImage?.image_url ?? product.primary_image?.image_url ?? product.images?.[0]?.image_url;
   const discount =
     product.compare_price && product.compare_price > product.price
       ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100)
       : 0;
+
+  // Internal state — dipakai kalau parent tidak inject wished/onWish
+  const [internalWished, setInternalWished] = useState(false);
+  const [wishLoading, setWishLoading] = useState(false);
+
+  const isWished = wishedProp ?? internalWished;
+
+  async function handleWish(e: React.MouseEvent) {
+    e.preventDefault();
+    if (onWish) { onWish(product); return; }
+    if (wishLoading) return;
+    setWishLoading(true);
+    try {
+      const res = await wishlistApi.toggle(product.id);
+      const next = res.data?.in_wishlist ?? res.data?.wishlisted ?? !internalWished;
+      setInternalWished(next);
+    } catch {
+      setInternalWished((v) => !v); // fallback lokal
+    } finally {
+      setWishLoading(false);
+    }
+  }
 
   return (
     <motion.div whileHover={{ y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 24 }} className={cn('group', className)}>
@@ -43,16 +68,19 @@ export function ProductCard({ product, onWish, wished, className }: ProductCardP
             </span>
           )}
 
-          {onWish && (
-            <button
-              type="button"
-              aria-label="Tambah ke wishlist"
-              onClick={(e) => { e.preventDefault(); onWish(product); }}
-              className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/85 text-ink backdrop-blur transition-colors hover:bg-white"
-            >
-              <Heart className={cn('h-4 w-4', wished && 'fill-danger text-danger')} />
-            </button>
-          )}
+          {/* Tombol wishlist — selalu tampil, handle API sendiri */}
+          <button
+            type="button"
+            aria-label={isWished ? 'Hapus dari wishlist' : 'Tambah ke wishlist'}
+            onClick={handleWish}
+            disabled={wishLoading}
+            className={cn(
+              'absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/85 text-ink backdrop-blur transition-colors hover:bg-white',
+              wishLoading && 'opacity-60',
+            )}
+          >
+            <Heart className={cn('h-4 w-4 transition-colors', isWished && 'fill-danger text-danger')} />
+          </button>
         </div>
 
         {/* Info */}
@@ -61,7 +89,6 @@ export function ProductCard({ product, onWish, wished, className }: ProductCardP
             {product.brand?.name && (
               <span className="text-[11px] font-bold uppercase tracking-wider text-emerald">{product.brand.name}</span>
             )}
-            {/* Signature: seal keaslian */}
             <span className="ml-auto inline-flex items-center gap-1 font-mono text-[9px] font-medium uppercase tracking-wider text-emerald/80">
               <ShieldCheck className="h-3 w-3" /> Asli
             </span>
@@ -69,7 +96,6 @@ export function ProductCard({ product, onWish, wished, className }: ProductCardP
           <h3 className="truncate font-serif text-base font-semibold text-ink">{product.name}</h3>
           <div className="mt-2 flex items-center justify-between border-t border-gold/30 pt-2.5">
             <div className="flex items-baseline gap-2">
-              {/* Data role: harga mono */}
               <span className="font-mono text-sm font-semibold text-ink">{formatIDR(product.price)}</span>
               {discount > 0 && (
                 <span className="font-mono text-[11px] text-muted-soft line-through">{formatIDR(product.compare_price!)}</span>

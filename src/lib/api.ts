@@ -134,6 +134,7 @@ export const ordersApi = {
     shipping_postal_code: string;
     notes?: string;
   }) => api.post('/orders', data),
+  cancel: (id: number | string) => api.patch(`/orders/${id}/cancel`),
 };
 
 // ─── Payment API ────────────────────────────────────────────

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, ShieldCheck, Heart, ShoppingBag, Plus, Minus, ArrowLeft, Truck, RefreshCw, BadgeCheck } from 'lucide-react';
-import { productsApi, cartApi } from '../lib/api';
+import { productsApi, cartApi, wishlistApi } from '../lib/api';
 import type { Product } from '../types';
 import { Container, Button, Badge, Skeleton } from '../components/ui';
 import { formatIDR, resolveImage } from '../lib/format';
@@ -18,7 +18,16 @@ export default function ProductDetail() {
   const [activeTab, setActiveTab] = useState<'desc' | 'spec' | 'reviews'>('desc');
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
   const [isWished, setIsWished] = useState(false);
+  const [wishLoading, setWishLoading] = useState(false);
   const [adding, setAdding] = useState(false);
+
+  // Cek status wishlist saat produk dimuat
+  useEffect(() => {
+    if (!product) return;
+    wishlistApi.check(product.id)
+      .then((res) => setIsWished(res.data?.in_wishlist ?? res.data?.wishlisted ?? false))
+      .catch(() => {}); // silent — tidak wajib login
+  }, [product?.id]);
 
   useEffect(() => {
     let active = true;
@@ -206,7 +215,20 @@ export default function ProductDetail() {
               <Button onClick={handleAddToCart} isLoading={adding} disabled={!inStock} size="lg" className="flex-grow">
                 <ShoppingBag className="h-5 w-5" /> {inStock ? 'Tambah ke Keranjang' : 'Stok Habis'}
               </Button>
-              <button onClick={() => setIsWished(!isWished)} aria-label="Tambah ke wishlist"
+              <button onClick={async () => {
+                if (wishLoading) return;
+                setWishLoading(true);
+                try {
+                  const res = await wishlistApi.toggle(product.id);
+                  const inWishlist = res.data?.in_wishlist ?? res.data?.wishlisted ?? !isWished;
+                  setIsWished(inWishlist);
+                } catch {
+                  // Fallback: toggle lokal jika belum login / API error
+                  setIsWished((v) => !v);
+                } finally {
+                  setWishLoading(false);
+                }
+              }} aria-label="Tambah ke wishlist"
                 className={cn('grid h-13 w-13 place-items-center rounded-full border transition-colors',
                   isWished ? 'border-danger-soft bg-danger-soft text-danger' : 'border-line-strong text-muted hover:border-rose')}>
                 <Heart className={cn('h-6 w-6', isWished && 'fill-current')} />
