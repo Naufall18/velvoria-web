@@ -22,6 +22,25 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'loyalty'>('profile');
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [orderFilter, setOrderFilter] = useState('semua');
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
+
+  const filteredOrders = orderFilter === 'semua'
+    ? orders
+    : orders.filter((o) => o.status?.toLowerCase() === orderFilter);
+
+  const handleCancelOrder = async (id: number) => {
+    if (!confirm('Yakin ingin membatalkan pesanan ini?')) return;
+    setCancellingId(id);
+    try {
+      await ordersApi.cancel(id);
+      setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status: 'cancelled' } : o));
+    } catch {
+      alert('Gagal membatalkan pesanan.');
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -118,38 +137,82 @@ export default function Dashboard() {
 
             {activeTab === 'orders' && (
               <div>
-                <h2 className="mb-8 border-b border-line pb-4 font-serif text-3xl font-bold text-ink">Riwayat Pesanan</h2>
+                <h2 className="mb-6 border-b border-line pb-4 font-serif text-3xl font-bold text-ink">Riwayat Pesanan</h2>
+
+                {/* Filter status */}
+                <div className="mb-6 flex flex-wrap gap-2">
+                  {['semua', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setOrderFilter(s)}
+                      className={cn(
+                        'rounded-full border px-4 py-1.5 text-xs font-semibold capitalize transition-colors',
+                        orderFilter === s
+                          ? 'border-primary bg-primary text-white'
+                          : 'border-line bg-surface-alt text-muted hover:border-primary/40 hover:text-ink',
+                      )}
+                    >
+                      {s === 'semua' ? 'Semua' : STATUS[s]?.label ?? s}
+                    </button>
+                  ))}
+                </div>
+
                 {loading ? (
                   <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
-                ) : orders.length === 0 ? (
+                ) : filteredOrders.length === 0 ? (
                   <div className="flex flex-col items-center gap-3 py-16 text-center">
                     <div className="grid h-14 w-14 place-items-center rounded-2xl bg-surface-alt text-muted"><Package className="h-6 w-6" /></div>
-                    <p className="text-muted">Belum ada pesanan.</p>
+                    <p className="text-muted">{orderFilter === 'semua' ? 'Belum ada pesanan.' : 'Tidak ada pesanan dengan status ini.'}</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
-                          <th className="pb-3 font-bold">No. Pesanan</th><th className="pb-3 font-bold">Tanggal</th>
-                          <th className="pb-3 font-bold">Total</th><th className="pb-3 font-bold">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-line">
-                        {orders.map((o) => {
-                          const st = STATUS[o.status?.toLowerCase()] ?? { label: o.status, tone: 'neutral' as const };
-                          return (
-                            <tr key={o.id} onClick={() => navigate(`/order/${o.id}`)}
-                              className="cursor-pointer transition hover:bg-surface-alt/50">
-                              <td className="py-4 font-mono font-semibold text-ink">{o.order_number ?? `VLV-${o.id}`}</td>
-                              <td className="py-4 font-mono text-muted">{o.created_at ? new Date(o.created_at).toLocaleDateString('id-ID') : '—'}</td>
-                              <td className="py-4 font-mono font-semibold text-ink">{formatIDR(o.total)}</td>
-                              <td className="py-4"><Badge tone={st.tone}>{st.label}</Badge></td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                  <div className="space-y-3">
+                    {filteredOrders.map((o) => {
+                      const st = STATUS[o.status?.toLowerCase()] ?? { label: o.status, tone: 'neutral' as const };
+                      const canCancel = o.status === 'pending' || o.status === 'processing';
+                      return (
+                        <div
+                          key={o.id}
+                          className="rounded-2xl border border-line bg-surface-alt/50 p-5 transition hover:border-primary/20"
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="font-mono font-semibold text-ink">{o.order_number ?? `VLV-${o.id}`}</p>
+                              <p className="mt-0.5 text-sm text-muted">
+                                {o.created_at ? new Date(o.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
+                                {' · '}
+                                <span className="font-semibold text-ink">{formatIDR(o.total)}</span>
+                              </p>
+                            </div>
+                            <Badge tone={st.tone}>{st.label}</Badge>
+                          </div>
+
+                          {/* Items preview */}
+                          {o.items && o.items.length > 0 && (
+                            <p className="mt-2 text-xs text-muted">
+                              {o.items.map((item: { product_name?: string; product?: { name: string } }) => item.product_name ?? item.product?.name).filter(Boolean).join(', ')}
+                            </p>
+                          )}
+
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <button
+                              onClick={() => navigate(`/order/${o.id}`)}
+                              className="rounded-full border border-line px-4 py-1.5 text-xs font-semibold text-ink transition hover:border-primary hover:text-primary"
+                            >
+                              Lihat Detail
+                            </button>
+                            {canCancel && (
+                              <button
+                                onClick={() => handleCancelOrder(o.id)}
+                                disabled={cancellingId === o.id}
+                                className="rounded-full border border-danger/30 px-4 py-1.5 text-xs font-semibold text-danger transition hover:bg-danger-soft disabled:opacity-50"
+                              >
+                                {cancellingId === o.id ? 'Membatalkan...' : 'Batalkan'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
